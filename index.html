@@ -28,6 +28,9 @@
       touch-action: manipulation;
     }
     button:hover, button.active { background: #7058e8; border-color: #9c88ff; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .delete-button { width: 100%; margin-top: 12px; background: #542b35; border-color: #824250; }
+    .delete-button:hover { background: #7a2935; border-color: #ff7b89; }
 
     .app { display: grid; grid-template-rows: 54px 1fr; height: 100%; }
     header {
@@ -314,6 +317,20 @@
         renderProperties();
       }
 
+      function deleteSelected() {
+        if (!selected) return;
+
+        const mesh = selected;
+        scene.remove(mesh);
+        mesh.geometry.dispose();
+        mesh.material.dispose();
+        objects.splice(objects.indexOf(mesh), 1);
+        selected = null;
+        transform.detach();
+        renderList();
+        renderProperties();
+      }
+
       function renderList() {
         const list = document.querySelector("#object-list");
         list.replaceChildren();
@@ -365,6 +382,13 @@
           });
           box.append(row);
         });
+
+        const deleteButton = document.createElement("button");
+        deleteButton.className = "delete-button";
+        deleteButton.type = "button";
+        deleteButton.textContent = "Удалить выбранную фигуру";
+        deleteButton.addEventListener("click", deleteSelected);
+        box.append(deleteButton);
       }
 
       document.querySelectorAll("[data-add]").forEach(button => {
@@ -453,14 +477,7 @@
         if (modes[event.key.toLowerCase()]) transform.setMode(modes[event.key.toLowerCase()]);
 
         if ((event.key === "Delete" || event.key === "Backspace") && selected) {
-          scene.remove(selected);
-          selected.geometry.dispose();
-          selected.material.dispose();
-          objects.splice(objects.indexOf(selected), 1);
-          selected = null;
-          transform.detach();
-          renderList();
-          renderProperties();
+          deleteSelected();
         }
 
         if (event.key === "Escape") closePanel();
